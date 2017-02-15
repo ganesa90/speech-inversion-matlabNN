@@ -7,6 +7,12 @@ Created on Mon Nov 14 13:20:07 2016
 import numpy as np
 
 #function mat_contxt = contextualize3(mat_inp,context,step)
+# mat_inp - Input feature matrix for one utterance (feature_dimension x num_of_frames)
+# context - Number of adjacent frames to concatenate. 
+#           If you say N, then N frames from right and N from the left are concatenated with current frame
+# skip    - Number of frames to skip while doing concatenation.
+#           If you say 2, then every alterante frame will be concatenated.
+#           2 is better because you are having overlap of half frame in every adjacent frame
 def contextualize(mat_inp,context,step):
     feat_dim = mat_inp.shape[0]
     if context == 0:

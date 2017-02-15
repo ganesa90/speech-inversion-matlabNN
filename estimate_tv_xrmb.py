@@ -8,9 +8,10 @@ import librosa
 import subprocess
 import HTK
 from contextualize import *
-import pykalman
 from writehtk import *
 from subprocess import call
+import matplotlib.pyplot as plt
+from KalmanSmoother import *
 
 def float2pcm16(f):    
     f = f * 32768 ;
@@ -18,6 +19,7 @@ def float2pcm16(f):
     f[f < -32768] = -32768;
     i = np.int16(f)
     return i
+
 
 def estimate_tv_xrmb(infile, opdir):
 #=========================================================================
@@ -67,14 +69,14 @@ def estimate_tv_xrmb(infile, opdir):
     b_out = NET['b'][0][0][1][0]
     hlayer_act = np.tanh(np.dot(IW,cont_feats)+b_in)
     tv = np.tanh(np.dot(LW,hlayer_act)+b_out)/std_frac
-    ksmth = pykalman.KalmanFilter()
-    tv_smth = []
-    for i in range(tv.shape[0]):
-        tvsm = ksmth.smooth(tv[i,:])[0]
-        tvsm = ksmth.smooth(tvsm)[0]
-        tvsm = np.reshape(tvsm, (1, tvsm.shape[0]))
-        tv_smth.append(tvsm)
-    tv_smth = np.concatenate(tv_smth, axis=0)
+    tv_smth = kalmansmooth(tv)
+
+#    plt.figure()
+#    for ii in range(tv.shape[0]):
+#        plt.subplot(3,2,ii+1)
+#        plt.plot(tv[ii,:],color='red')
+#        plt.plot(tv_smth[ii,:],color='blue')       
+#    plt.show()
     opdir = opdir+dirname
     opfnm = opdir+'/'+fname+'.htk'
     writehtk(tv_smth.T, 10, opfnm)
@@ -85,4 +87,5 @@ def estimate_tv_xrmb(infile, opdir):
     
 if __name__ == "__main__":
     estimate_tv_xrmb(sys.argv[1], sys.argv[2])
+
     
